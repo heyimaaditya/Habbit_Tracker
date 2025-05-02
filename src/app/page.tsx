@@ -1,4 +1,4 @@
-'use client'; 
+'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
 import {
@@ -11,37 +11,32 @@ import {
   CartesianGrid,
 } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
-import { format, isSameDay, subDays, parseISO, isValid } from 'date-fns';
+import { format, isSameDay, subDays, parseISO } from 'date-fns';
 
-// --- Type Definitions ---
 interface HistoryEntry {
-  date: string; 
-  value: number | boolean; 
+  date: string;
+  value: number | boolean;
 }
 
-type GoalType = 'count' | 'boolean'; 
+type GoalType = 'count' | 'boolean';
 
 interface Habit {
   id: string;
   name: string;
   goalType: GoalType;
-  goalValue: number | boolean; 
+  goalValue: number | boolean;
   history: HistoryEntry[];
-  color: string; // Hex color for charts/UI
+  color: string;
 }
-
-// --- Helper Functions ---
 
 const getTodayString = (): string => {
   return format(new Date(), 'yyyy-MM-dd');
 };
 
-// Generate a simple unique ID
 const generateId = (): string => {
   return Math.random().toString(36).substring(2, 15);
 };
 
-// Generate realistic mock history for the last N days
 const generateMockHistory = (
   days: number,
   goalType: GoalType,
@@ -55,10 +50,8 @@ const generateMockHistory = (
 
     if (goalType === 'count') {
       const targetValue = goalValue as number;
-    
       value = Math.floor(Math.random() * (targetValue + Math.ceil(targetValue / 2) + 1));
     } else {
-     
       value = Math.random() > 0.3;
     }
 
@@ -67,7 +60,6 @@ const generateMockHistory = (
   return history;
 };
 
-// Calculate streak
 const calculateStreak = (
   history: HistoryEntry[],
   goalValue: number | boolean,
@@ -77,69 +69,53 @@ const calculateStreak = (
     return 0;
   }
 
-  // Sort history by date descending
   const sortedHistory = [...history].sort(
     (a, b) => parseISO(b.date).getTime() - parseISO(a.date).getTime()
   );
 
   let streak = 0;
-  let currentDate = new Date(); 
+  let expectedDate = new Date();
 
- 
-  let checkDate = new Date();
-  const todayString = getTodayString();
   const lastEntry = sortedHistory[0];
   const lastEntryDate = parseISO(lastEntry.date);
 
   let startIndex = 0;
 
-  if (isSameDay(lastEntryDate, currentDate)) {
-    
-    if (checkGoalMet(lastEntry.value, goalValue, goalType)) {
-      streak = 1;
-      currentDate = subDays(currentDate, 1);
-    } else {
-     
-      return sortedHistory.length === 1 ? 0 : 0;
-    }
-    startIndex = 1; 
-  } else if (isSameDay(lastEntryDate, subDays(currentDate, 1))) {
-
-    if (checkGoalMet(lastEntry.value, goalValue, goalType)) {
-      streak = 1;
-      currentDate = subDays(currentDate, 2); 
-    } else {
-       return 0; 
-    }
-    startIndex = 1;
+  if (isSameDay(lastEntryDate, expectedDate)) {
+      if (checkGoalMet(lastEntry.value, goalValue, goalType)) {
+          streak = 1;
+          expectedDate = subDays(expectedDate, 1);
+          startIndex = 1;
+      } else {
+          return sortedHistory.length === 1 ? 0 : 0;
+      }
+  } else if (isSameDay(lastEntryDate, subDays(expectedDate, 1))) {
+       if (checkGoalMet(lastEntry.value, goalValue, goalType)) {
+           streak = 1;
+           expectedDate = subDays(expectedDate, 2);
+           startIndex = 1;
+       } else {
+           return 0;
+       }
   } else {
-      
       return 0;
   }
 
-
-  // Check previous days
   for (let i = startIndex; i < sortedHistory.length; i++) {
     const entry = sortedHistory[i];
     const entryDate = parseISO(entry.date);
 
-  
-    if (isSameDay(entryDate, currentDate) && checkGoalMet(entry.value, goalValue, goalType)) {
+    if (isSameDay(entryDate, expectedDate) && checkGoalMet(entry.value, goalValue, goalType)) {
       streak++;
-      currentDate = subDays(currentDate, 1);
-    } else if (entryDate.getTime() < currentDate.getTime()) {
-      
+      expectedDate = subDays(expectedDate, 1);
+    } else if (entryDate.getTime() < expectedDate.getTime()) {
         break;
     }
-    
   }
-
 
   return streak;
 };
 
-
-// Check if the logged value meets the goal
 const checkGoalMet = (
   loggedValue: number | boolean,
   goalValue: number | boolean,
@@ -152,8 +128,6 @@ const checkGoalMet = (
   }
 };
 
-
-// --- Mock Data ---
 const initialHabits: Habit[] = [
   {
     id: generateId(),
@@ -161,7 +135,7 @@ const initialHabits: Habit[] = [
     goalType: 'count',
     goalValue: 8,
     history: generateMockHistory(30, 'count', 8),
-    color: '#3b82f6', 
+    color: '#3b82f6',
   },
   {
     id: generateId(),
@@ -169,7 +143,7 @@ const initialHabits: Habit[] = [
     goalType: 'count',
     goalValue: 30,
     history: generateMockHistory(30, 'count', 30),
-    color: '#10b981', 
+    color: '#10b981',
   },
   {
     id: generateId(),
@@ -189,8 +163,6 @@ const initialHabits: Habit[] = [
   },
 ];
 
-// --- Main Component ---
-
 export default function HabitTrackerPage() {
   const [habits, setHabits] = useState<Habit[]>(initialHabits);
   const [isAddHabitModalOpen, setIsAddHabitModalOpen] = useState(false);
@@ -201,7 +173,7 @@ export default function HabitTrackerPage() {
     name: '',
     goalType: 'count' as GoalType,
     goalValue: '',
-    color: '#3b82f6', 
+    color: '#3b82f6',
   });
 
   const selectedHabit = useMemo(
@@ -209,12 +181,10 @@ export default function HabitTrackerPage() {
     [habits, selectedHabitId]
   );
 
-
   const chartData = useMemo(() => {
     if (!selectedHabit) return [];
 
-
-    const thirtyDaysAgo = subDays(new Date(), 29); 
+    const thirtyDaysAgo = subDays(new Date(), 29);
     const historyMap = new Map(
       selectedHabit.history.map((entry) => [entry.date, entry])
     );
@@ -223,10 +193,9 @@ export default function HabitTrackerPage() {
     for (let i = 29; i >= 0; i--) {
       const date = subDays(new Date(), i);
       const dateString = format(date, 'yyyy-MM-dd');
-      const dayName = format(date, 'MMM dd'); 
+      const dayName = format(date, 'MMM dd');
 
       const entry = historyMap.get(dateString);
-    
       const value =
         entry?.value !== undefined
           ? entry.value
@@ -240,18 +209,13 @@ export default function HabitTrackerPage() {
     return data;
   }, [selectedHabit]);
 
-
-
   useEffect(() => {
     if (!selectedHabitId && habits.length > 0) {
         setSelectedHabitId(habits[0].id);
     } else if (habits.length === 0) {
-        setSelectedHabitId(null); 
+        setSelectedHabitId(null);
     }
   }, [habits, selectedHabitId]);
-
-
-  // --- Event Handlers ---
 
   const handleLogActivity = (habitId: string, value?: number | boolean) => {
     setHabits((currentHabits) =>
@@ -259,30 +223,25 @@ export default function HabitTrackerPage() {
         if (habit.id === habitId) {
           const todayString = getTodayString();
           const existingEntryIndex = habit.history.findIndex((entry) =>
-            isSameDay(parseISO(entry.date), parseISO(todayString)) 
+            isSameDay(parseISO(entry.date), parseISO(todayString))
           );
 
           let updatedHistory = [...habit.history];
           let valueToLog: number | boolean;
 
           if (habit.goalType === 'boolean') {
-             valueToLog = true; 
+             valueToLog = true;
           } else {
-     
-             valueToLog = value !== undefined ? value : (habit.goalValue as number); 
+             valueToLog = value !== undefined ? value : (habit.goalValue as number);
           }
 
-
           if (existingEntryIndex > -1) {
-         
             updatedHistory[existingEntryIndex] = {
               date: todayString,
               value: valueToLog,
             };
           } else {
-           
             updatedHistory.push({ date: todayString, value: valueToLog });
-            
              updatedHistory.sort((a, b) => parseISO(a.date).getTime() - parseISO(b.date).getTime());
           }
 
@@ -296,7 +255,6 @@ export default function HabitTrackerPage() {
    const handleAddHabitSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-    
         if (!newHabitFormData.name.trim()) {
             alert('Habit name is required.');
             return;
@@ -307,7 +265,6 @@ export default function HabitTrackerPage() {
              alert('Goal value must be a positive number for count-based habits.');
              return;
         }
-
 
         const newHabit: Habit = {
             id: generateId(),
@@ -320,11 +277,9 @@ export default function HabitTrackerPage() {
 
         setHabits((currentHabits) => [...currentHabits, newHabit]);
 
- 
         setSelectedHabitId(newHabit.id);
         setIsAddHabitModalOpen(false);
 
-     
         setNewHabitFormData({
             name: '',
             goalType: 'count',
@@ -333,16 +288,14 @@ export default function HabitTrackerPage() {
         });
     };
 
-
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
          const { name, value } = e.target;
 
          if (name === 'goalType') {
-           
             setNewHabitFormData({
                  ...newHabitFormData,
                  goalType: value as GoalType,
-                 goalValue: value === 'boolean' ? '' : newHabitFormData.goalValue, 
+                 goalValue: value === 'boolean' ? '' : newHabitFormData.goalValue,
              });
          } else {
              setNewHabitFormData({
@@ -369,19 +322,14 @@ export default function HabitTrackerPage() {
          setIsAddHabitModalOpen(true);
      }
 
-
-  // --- Render Logic ---
-
-  
   const todayString = getTodayString();
   const todayHistoryMap = new Map(
     habits.flatMap(habit =>
         habit.history
             .filter(entry => isSameDay(parseISO(entry.date), parseISO(todayString)))
-            .map(entry => [`${habit.id}-${entry.date}`, entry]) 
+            .map(entry => [`${habit.id}-${entry.date}`, entry])
     )
   );
-
 
   const wasGoalMetToday = (habit: Habit): boolean => {
        const entry = todayHistoryMap.get(`${habit.id}-${todayString}`);
@@ -391,17 +339,14 @@ export default function HabitTrackerPage() {
 
   const userAvatarUrl = useMemo(() => `https://randomuser.me/api/portraits/women/${Math.floor(Math.random() * 100)}.jpg`, []);
 
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 text-gray-800 font-sans flex flex-col">
-      {/* Navbar */}
       <nav className="bg-white shadow-sm py-4 px-6 md:px-10 flex justify-between items-center z-10">
         <div className="text-2xl font-bold text-blue-600">Habit Tracker</div>
         <div className="flex items-center space-x-4">
-           {/* Mock User Info */}
            <div className="hidden md:flex items-center space-x-2">
                 <img src={userAvatarUrl} alt="User Avatar" className="w-8 h-8 rounded-full border-2 border-blue-400"/>
-                 <span className="text-gray-700 font-medium">Welcome, User!</span> {/* */}
+                 <span className="text-gray-700 font-medium">Welcome, Alex!</span>
            </div>
           <button
             onClick={openAddHabitModal}
@@ -409,14 +354,10 @@ export default function HabitTrackerPage() {
           >
             Add Habit
           </button>
-          {/*  */}
-          {/*  */}
         </div>
       </nav>
 
-      {/* Main Content Area */}
       <main className="flex-grow container mx-auto px-6 md:px-10 py-8 grid grid-cols-1 md:grid-cols-3 gap-8">
-        {/* Sidebar / Habit List Section */}
         <section className="md:col-span-1 bg-white rounded-lg shadow p-6 h-fit">
           <h2 className="text-xl font-semibold mb-6 text-gray-800">Your Habits</h2>
 
@@ -451,11 +392,10 @@ export default function HabitTrackerPage() {
                         <div className="text-gray-700 font-semibold">
                              🔥 Streak: {currentStreak} {currentStreak === 1 ? 'day' : 'days'}
                         </div>
-                        {/* Daily Check-in Button */}
                          {!metGoalToday && (
                             <button
                               onClick={(e) => {
-                                e.stopPropagation(); 
+                                e.stopPropagation();
                                 handleLogActivity(habit.id);
                               }}
                               className="ml-4 bg-green-500 text-white text-sm px-3 py-1 rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400"
@@ -471,7 +411,6 @@ export default function HabitTrackerPage() {
           )}
         </section>
 
-        {/* Main Chart & Details Section */}
         <section className="md:col-span-2 bg-white rounded-lg shadow p-6">
           {selectedHabit ? (
             <>
@@ -479,11 +418,10 @@ export default function HabitTrackerPage() {
                 Progress for {selectedHabit.name}
               </h2>
 
-              {/* Chart */}
               <div className="h-80 w-full mb-6">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData}>
-                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" /> {/* Gray 200 */}
+                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                     <XAxis
                        dataKey="name"
                        fontSize={12}
@@ -495,12 +433,12 @@ export default function HabitTrackerPage() {
                        fontSize={12}
                        axisLine={false}
                        tickLine={false}
-                       label={{ value: selectedHabit.goalType === 'count' ? 'Value' : 'Completed', angle: -90, position: 'insideLeft', offset: 10, style: { textAnchor: 'middle', fill: '#6b7280' } }} // Gray 500
+                       label={{ value: selectedHabit.goalType === 'count' ? 'Value' : 'Completed', angle: -90, position: 'insideLeft', offset: 10, style: { textAnchor: 'middle', fill: '#6b7280' } }}
                        tickFormatter={(value) => selectedHabit.goalType === 'boolean' ? (value ? 'Yes' : 'No') : value}
                      />
                     <Tooltip
                        formatter={(value) => selectedHabit.goalType === 'boolean' ? (value ? 'Completed' : 'Not Completed') : value}
-                       labelFormatter={(label) => `Date: ${label}`} 
+                       labelFormatter={(label) => `Date: ${label}`}
                     />
                     <Line
                       type="monotone"
@@ -514,7 +452,6 @@ export default function HabitTrackerPage() {
                 </ResponsiveContainer>
               </div>
 
-              {/* Stats Overview */}
               <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
                    <div className="bg-blue-50 p-4 rounded-lg shadow-sm">
                        <div className="text-2xl font-bold text-blue-700">
@@ -528,9 +465,7 @@ export default function HabitTrackerPage() {
                        </div>
                        <div className="text-sm text-green-600">Total Completed Days</div>
                    </div>
-                   {/*  */}
               </div>
-
             </>
           ) : (
             <div className="flex flex-col items-center justify-center h-full text-gray-500">
@@ -549,18 +484,15 @@ export default function HabitTrackerPage() {
         </section>
       </main>
 
-      {/* Footer */}
       <footer className="bg-gray-800 text-white py-6 px-6 md:px-10 mt-8 text-center">
         <p>© {new Date().getFullYear()} Habit Tracker. All rights reserved.</p>
         <p className="text-sm text-gray-400 mt-2">Built with Next.js, Tailwind CSS, TypeScript, Recharts, & Framer Motion.</p>
-         {/*  */}
          <div className="mt-4 text-sm space-x-4 text-gray-400">
              <a href="#" onClick={(e) => {e.preventDefault(); alert('Privacy Policy Placeholder')}} className="hover:underline">Privacy Policy</a>
              <a href="#" onClick={(e) => {e.preventDefault(); alert('Terms of Service Placeholder')}} className="hover:underline">Terms of Service</a>
          </div>
       </footer>
 
-      {/* */}
         <AnimatePresence>
              {isAddHabitModalOpen && (
                  <motion.div
@@ -635,7 +567,6 @@ export default function HabitTrackerPage() {
                              <div>
                                  <label htmlFor="color" className="block text-sm font-medium text-gray-700">Chart Color</label>
                                   <div className="mt-1 flex items-center space-x-3">
-                                       {/* Predefined color options */}
                                       {['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4'].map(color => (
                                            <button
                                                key={color}
@@ -646,10 +577,8 @@ export default function HabitTrackerPage() {
                                                aria-label={`Select color ${color}`}
                                            />
                                        ))}
-                                        {/*  */}
                                    </div>
                              </div>
-
 
                              <div className="pt-4">
                                  <button
@@ -664,7 +593,6 @@ export default function HabitTrackerPage() {
                  </motion.div>
              )}
          </AnimatePresence>
-
     </div>
   );
 }
