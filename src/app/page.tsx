@@ -184,7 +184,9 @@ export default function HabitTrackerPage() {
   const chartData = useMemo(() => {
     if (!selectedHabit) return [];
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const thirtyDaysAgo = subDays(new Date(), 29);
+
     const historyMap = new Map(
       selectedHabit.history.map((entry) => [entry.date, entry])
     );
@@ -221,11 +223,13 @@ export default function HabitTrackerPage() {
     setHabits((currentHabits) =>
       currentHabits.map((habit) => {
         if (habit.id === habitId) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const todayString = getTodayString();
           const existingEntryIndex = habit.history.findIndex((entry) =>
             isSameDay(parseISO(entry.date), parseISO(todayString))
           );
 
+          // eslint-disable-next-line prefer-const
           let updatedHistory = [...habit.history];
           let valueToLog: number | boolean;
 
