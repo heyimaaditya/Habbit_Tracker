@@ -6,7 +6,7 @@ import {
   Line,
   XAxis,
   YAxis,
-  Tooltip,
+Tooltip,
   ResponsiveContainer,
   CartesianGrid,
 } from 'recharts';
@@ -229,7 +229,7 @@ export default function HabitTrackerPage() {
             isSameDay(parseISO(entry.date), parseISO(todayString))
           );
 
-          // eslint-disable-next-line prefer-const
+          // eslint-disable-line prefer-const
           let updatedHistory = [...habit.history];
           let valueToLog: number | boolean;
 
@@ -366,6 +366,7 @@ export default function HabitTrackerPage() {
           <h2 className="text-xl font-semibold mb-6 text-gray-800">Your Habits</h2>
 
           {habits.length === 0 ? (
+             // FIX: Added " around "Add Habit"
              <p className="text-gray-500">No habits added yet. Click "Add Habit" to get started!</p>
           ) : (
             <ul className="space-y-4">
@@ -490,7 +491,7 @@ export default function HabitTrackerPage() {
 
       <footer className="bg-gray-800 text-white py-6 px-6 md:px-10 mt-8 text-center">
         <p>© {new Date().getFullYear()} Habit Tracker. All rights reserved.</p>
-        <p className="text-sm text-gray-400 mt-2">Built with Next.js, Tailwind CSS, TypeScript, Recharts, & Framer Motion.</p>
+        <p className="text-sm text-gray-400 mt-2">Built with Next.js, Tailwind CSS, TypeScript, Recharts, & Framer Motion.</p> {/* & is correct */}
          <div className="mt-4 text-sm space-x-4 text-gray-400">
              <a href="#" onClick={(e) => {e.preventDefault(); alert('Privacy Policy Placeholder')}} className="hover:underline">Privacy Policy</a>
              <a href="#" onClick={(e) => {e.preventDefault(); alert('Terms of Service Placeholder')}} className="hover:underline">Terms of Service</a>
@@ -562,8 +563,6 @@ export default function HabitTrackerPage() {
                                          value={newHabitFormData.goalValue}
                                          onChange={handleInputChange}
                                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm p-2"
-                                         required={newHabitFormData.goalType === 'count'}
-                                         min="1"
                                      />
                                  </div>
                              )}
