@@ -366,7 +366,7 @@ export default function HabitTrackerPage() {
           <h2 className="text-xl font-semibold mb-6 text-gray-800">Your Habits</h2>
 
           {habits.length === 0 ? (
-             // FIX: Added " around "Add Habit"
+           
              <p className="text-gray-500">No habits added yet. Click "Add Habit" to get started!</p>
           ) : (
             <ul className="space-y-4">
